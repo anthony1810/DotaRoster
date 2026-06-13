@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# Xcode / SwiftPM
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.swiftpm/
+Package.resolved
+
+# AI / planning artifacts — never commit
+CLAUDE.md
+.claude/
+.mcp.json
+REFACTOR_PLAN.md
+plans/
+*[Pp]lan*.md
+*-plan.html
