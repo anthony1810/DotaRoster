@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "name": "npc_dota_hero_antimage",
+    "localized_name": "Anti-Mage",
+    "primary_attr": "agi",
+    "attack_type": "Melee",
+    "roles": ["Carry", "Escape", "Nuker"]
+  },
+  {
+    "id": 2,
+    "name": "npc_dota_hero_axe",
+    "localized_name": "Axe",
+    "primary_attr": "str",
+    "attack_type": "Melee",
+    "roles": ["Initiator", "Durable"]
+  },
+  {
+    "id": 5,
+    "name": "npc_dota_hero_crystal_maiden",
+    "localized_name": "Crystal Maiden",
+    "primary_attr": "int",
+    "attack_type": "Ranged",
+    "roles": ["Support", "Disabler"]
+  },
+  {
+    "id": 102,
+    "name": "npc_dota_hero_abaddon",
+    "localized_name": "Abaddon",
+    "primary_attr": "all",
+    "attack_type": "Melee",
+    "roles": ["Support", "Carry", "Durable"]
+  }
+]

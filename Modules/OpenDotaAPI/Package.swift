@@ -14,7 +14,15 @@ let package = Package(
             "DotaFoundation",
             .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras")
         ]),
-        .testTarget(name: "OpenDotaAPITests", dependencies: ["OpenDotaAPI", "DotaFoundation"])
+        .testTarget(
+            name: "OpenDotaAPITests",
+            dependencies: [
+                "OpenDotaAPI",
+                "DotaFoundation",
+                .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras")
+            ],
+            resources: [.process("Helpers/Fixtures")]
+        )
     ],
     swiftLanguageModes: [.v6]
 )
