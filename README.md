@@ -2,85 +2,116 @@
 
 A Dota 2 hero browser for iOS — browse every hero, see their info, and tap to hear their voice lines. Built as the **reference sample app for [ScreenStateKit](https://github.com/anthony1810/ScreenStateKit)**, demonstrating the *Three Pillars* state pattern inside a modular, protocol-driven clean architecture.
 
-> This project supersedes **Definery** as the canonical ScreenStateKit example. Where Definery splits packages per entity, DotaRoster mirrors the richer **OnDeck** layout: a single `DotaFoundation` core, role-based infrastructure packages, feature-as-package modules, and `pointfreeco/Dependencies` for dependency injection.
+> Supersedes **Definery** as the canonical ScreenStateKit example. It mirrors the **OnDeck** layout: a single `DotaFoundation` core, role-based infrastructure packages, feature-as-package modules, and `pointfreeco/Dependencies` for dependency injection.
 
-## Status
+**Stack:** iOS 26+ / macOS 26+ · SwiftUI · **Swift 6** (full language mode) · SwiftData · ScreenStateKit · Swift Testing.
 
-Early WIP. A working single-file SwiftUI proof-of-concept lives in `Sources/`; the modular package structure (`Modules/`) is scaffolded and the app builds on top of it. The codebase is being migrated layer-by-layer into the packages (see [Roadmap](#roadmap)).
+---
 
-- ✅ **Phase 0** — modular project structure, package graph, checked-in `.xcodeproj`, DI via swift-dependencies.
-- ⏳ **Phase 1+** — migrate the POC into `DotaFoundation` → `OpenDotaAPI` → cache → features (TDD).
+## Modular Architecture
 
-## Tech stack
+The app is split into small Swift packages, each with one job.
 
-- **iOS 26+ / macOS 26+**, SwiftUI, **Swift 6** (full language mode, complete concurrency checking), actors & async/await throughout.
-- **State management:** [ScreenStateKit](https://github.com/anthony1810/ScreenStateKit) — `ScreenState` + `ScreenActionStore` + `ActionLocker`.
-- **DI:** [pointfreeco/swift-dependencies](https://github.com/pointfreeco/swift-dependencies).
-- **Persistence:** SwiftData (offline-first hero cache).
-- **Testing:** Swift Testing, [swift-concurrency-extras](https://github.com/pointfreeco/swift-concurrency-extras) (`LockIsolated` spies), [swift-snapshot-testing](https://github.com/pointfreeco/swift-snapshot-testing), [swift-clocks](https://github.com/pointfreeco/swift-clocks).
+![Modular package architecture](docs/modular-architecture.png)
 
-## Architecture
-
-DotaRoster is split into small Swift packages, each with one job. **The governing rule: all dependencies point inward to `DotaFoundation`.** Features and infrastructure are *siblings that never import each other* — a feature depends on a **protocol**, and only the app's composition root knows the concrete implementation. That inversion is what makes features testable without a network or database, infrastructure swappable, and packages buildable in isolation.
-
-```
-                 ┌─────────────────────────────────────────────┐
-                 │  DotaRoster (app) · Composer/                │  ← composition root:
-                 │  DI keys, liveValue/testValue, App.swift     │    the ONLY place that
-                 └─────────────────────────────────────────────┘    knows both sides
-                                      │ wires (composition)
-                                      ▼
-        ┌───────────────────────────────────────────────────────────────┐
-        │  DotaFeature  (meta-feature: tab / navigation host, no logic)   │
-        │   ┌─────────────────────┐   ┌──────────────────────┐            │
-        │   │   HeroListFeature   │   │   HeroDetailFeature   │  Features  │
-        │   │ State·Store·View    │   │ State·Store·View      │            │
-        │   └─────────────────────┘   └──────────────────────┘            │
-        └───────────────────────────────────────────────────────────────┘
-                                      │ depend on models & PROTOCOLS
-                                      ▼
-        ┌───────────────────────────────────────────────────────────────┐
-        │  DotaFoundation  — the Core                                     │
-        │  ALL domain models (Hero, Ability, HeroLine, HeroStats)         │
-        │  + ALL service protocols (HeroLoaderProtocol, …, VoicePlaying)  │
-        │  depends on nothing                                             │
-        └───────────────────────────────────────────────────────────────┘
-                                      ▲ IMPLEMENT those protocols
-                                      │
-   ┌──────────────┬──────────────────┴───────────┬────────────────────────┐
-   │ OpenDotaAPI  │  DotaConstantsAPI             │ HeroCacheInfrastructure │ VoiceInfrastructure
-   │ RemoteHero   │  abilities / patch notes      │ SwiftData store         │ SystemVoicePlayer
-   │ Loader, …    │  (raw dotaconstants JSON)     │ (offline-first)         │ (AVSpeech + AVPlayer)
-   └──────────────┴──────────────────────────────┴─────────────────────────┘
-                              Infrastructure (concrete implementations)
-```
-
-### Packages
+**The governing rule: every dependency points inward, to `DotaFoundation`.** Features and infrastructure are *siblings that never import each other* — a feature depends on a **protocol**, and only the app's composition root knows the concrete implementation. That inversion is what makes features testable without a network or database, infrastructure swappable, and packages buildable in isolation.
 
 | Package | Layer | Role |
 |---|---|---|
-| **DotaFoundation** | Core | Shared vocabulary — all domain models + all service protocols. Zero outward dependencies. |
-| **OpenDotaAPI** | Infrastructure | HTTP loaders for `api.opendota.com` (heroes, stats). |
-| **DotaConstantsAPI** | Infrastructure | Loaders for abilities + patch notes (raw `odota/dotaconstants` JSON). |
-| **HeroCacheInfrastructure** | Infrastructure | SwiftData persistence → offline-first hero list. |
-| **VoiceInfrastructure** | Infrastructure | Device service that speaks hero lines (TTS now; bundled/remote audio later). |
-| **HeroListFeature** | Feature | The hero grid — `HeroListState` / `HeroListStore` / `HeroListSUView`. |
-| **HeroDetailFeature** | Feature | Hero detail + voice — `HeroDetailState` / `HeroDetailStore` / `HeroDetailSUView`. |
-| **DotaFeature** | Meta-feature | Hosts the features in tabs / navigation. No business logic. |
-| **DotaRoster** (app) | Composition root | Binds concrete infra to protocols (DI) and assembles each screen. |
+| `DotaFoundation` | Core | All domain models + all service protocols. Zero outward dependencies. |
+| `OpenDotaAPI` | Infrastructure | HTTP loaders for `api.opendota.com` (`RemoteHeroLoader`, `HeroMapper`). |
+| `DotaConstantsAPI` | Infrastructure | Abilities + patch notes from `odota/dotaconstants`. |
+| `HeroCacheInfrastructure` | Infrastructure | SwiftData persistence → offline-first hero list. |
+| `VoiceInfrastructure` | Infrastructure | `SystemVoicePlayer` — speaks hero lines. |
+| `HeroListFeature` | Feature | Hero grid — `HeroListState` / `HeroListStore` / `HeroListSUView`. |
+| `HeroDetailFeature` | Feature | Hero detail + voice. |
+| `DotaFeature` | Meta-feature | Hosts the features in tabs / navigation. |
+| `DotaRoster` (app) | Composition root | Binds concrete infra to protocols and assembles each screen. |
 
 ### How a feature is composed
 
-1. **`DotaFoundation`** declares the contract — the domain model + a protocol:
+1. **`DotaFoundation`** declares the contract — a domain model + a protocol:
    ```swift
-   public protocol HeroLoaderProtocol: Sendable { func loadHeroes() async throws -> [Hero] }
+   public protocol HeroLoaderProtocol: Sendable {
+       func loadHeroes() async throws -> [Hero]
+   }
    ```
-2. **Infrastructure** fulfills it independently — e.g. `RemoteHeroLoader` (OpenDotaAPI) and `SwiftDataHeroStore` (HeroCacheInfrastructure).
+2. **Infrastructure** fulfils it independently — `RemoteHeroLoader` (`OpenDotaAPI`) and `SwiftDataHeroStore` (`HeroCacheInfrastructure`).
 3. **The feature** builds the screen against the *abstraction* — `HeroListStore` holds `any HeroLoaderProtocol` and imports only `DotaFoundation` + `ScreenStateKit`.
-4. **The app's Composer** binds the concrete type to the protocol (`HeroLoaderKey.liveValue = RemoteHeroLoader(...)`) and assembles `State + Store + View`.
-5. **Tests** swap `liveValue` for a `LockIsolated` spy — the same store runs with no network or DB.
+4. **The Composer** binds the concrete type to the protocol and assembles the screen:
+   ```swift
+   extension HeroLoaderKey {
+       static var liveValue: any HeroLoaderProtocol { RemoteHeroLoader(client: URLSessionHTTPClient()) }
+   }
 
-> A "feature" isn't one package — it's the feature package + the `DotaFoundation` protocols it speaks to + the infrastructure that satisfies them, fused by the Composer.
+   enum HeroListComposer {
+       @MainActor static func makeView() -> HeroListSUView {
+           @Dependency(HeroLoaderKey.self) var loader
+           @Dependency(HeroStoreKey.self) var store
+           return HeroListSUView(viewState: HeroListState(),
+                                 viewStore: HeroListStore(loader: loader, store: store))
+       }
+   }
+   ```
+5. **Tests** swap `liveValue` for a `LockIsolated` spy — the same store runs with no network or database.
+
+---
+
+## ScreenStateKit Architecture
+
+Every screen is a unidirectional loop built from three pillars.
+
+![ScreenStateKit Three Pillars](docs/ssk-three-pillars.png)
+
+- **State** — `@Observable @MainActor final class … : ScreenState`. Holds the screen's data plus `infoMessage`; `isLoading` is tracked automatically. Being `@Observable`, mutating it re-renders the View.
+- **Store** — `actor … : ScreenActionStore`. Holds a `weak` reference to the State, defines an `Action` enum, and processes actions in `receive(action:)`.
+- **View** — SwiftUI. Binds to the Store in `.task` and dispatches actions; never touches services directly.
+
+```swift
+// 1 · State
+@Observable @MainActor
+final class HeroListState: ScreenState, StateUpdatable {
+    var heroes: [Hero] = []
+    var infoMessage: InfoPresenterType?
+}
+
+// 2 · Store
+actor HeroListStore: ScreenActionStore {
+    private(set) weak var viewState: HeroListState?
+    private let actionLocker = ActionLocker.nonIsolated
+    enum Action: ActionLockable, LoadingTrackable, Hashable, Sendable { case load, refresh }
+
+    func binding(state: HeroListState) { viewState = state }
+
+    func receive(action: Action) async throws {
+        guard actionLocker.canExecute(action) else { return }   // dedupe
+        defer { actionLocker.unlock(action) }
+        let heroes = try await loader.loadHeroes()
+        try? await store.save(heroes)
+        await viewState?.updateState { $0.heroes = heroes }      // mutate → View re-renders
+    }
+}
+
+// 3 · View
+struct HeroListSUView: View {
+    @State private var viewState: HeroListState
+    let viewStore: HeroListStore
+
+    var body: some View {
+        grid
+            .task {
+                await viewStore.binding(state: viewState)
+                viewStore.nonisolatedReceive(action: .load)
+            }
+            .presentProgress(isLoading: viewState.isLoading)
+            .presentMessage($viewState.infoMessage)
+    }
+}
+```
+
+**Action processing order** (every action, inside `receive`): `actionLocker.canExecute` → auto `loadingStarted` → do the work + `updateState` → `throw DisplayableError` on failure → `defer { actionLocker.unlock }`.
+
+---
 
 ## Data sources
 
@@ -91,21 +122,25 @@ DotaRoster is split into small Swift packages, each with one job. **The governin
 | Hero portraits | Valve CDN | `cdn.cloudflare.steamstatic.com/.../heroes/{slug}.png` |
 | Abilities + patch notes | odota/dotaconstants | `raw.githubusercontent.com/odota/dotaconstants/master/build/*.json` |
 
-Voice lines are currently spoken via on-device text-to-speech; the model carries an `audioURL` seam for real audio once a hostable source is available.
+Voice lines are spoken via on-device text-to-speech; `HeroLine.audioURL` is the seam for real audio later.
 
-> ⚠️ Hero art, voice audio, and ability media are Valve intellectual property — fine for personal/portfolio/learning use, but not for App Store publication.
+> ⚠️ Hero art, voice audio, and ability media are Valve intellectual property — fine for personal/portfolio/learning use, not for App Store publication.
 
 ## Requirements & running
 
-- Xcode 26+, iOS 26+ simulator or device.
-- Open `DotaRoster.xcodeproj`, select the **DotaRoster** scheme, and run. Swift Package Manager resolves all dependencies automatically.
+- Xcode 26+, iOS 26+ simulator or device. Open `DotaRoster.xcodeproj`, select the **DotaRoster** scheme, and run — SPM resolves all dependencies automatically.
 
 ## Roadmap
 
-**Refactor (parity with the POC, but layered + tested + offline-first):**
-`P0` structure → `P1` DotaFoundation → `P2` OpenDotaAPI → `P3` cache → `P4` voice → `P5` Hero List → `P6` Hero Detail → `P7` composition → `P8` test plans + CI.
+**Refactor (layered + tested + offline-first):**
+`P0` structure ✅ → `P1` DotaFoundation ✅ → `P2` OpenDotaAPI → `P3` cache → `P4` voice → `P5` Hero List → `P6` Hero Detail → `P7` composition → `P8` test plans + CI.
 
-**Future features:** Hero skills/abilities · win-rate & pick stats · patch notes ("What's New") · per-hero skill changes · skill demo video & real voice lines.
+**Future features:** hero skills/abilities · win-rate & pick stats · patch notes ("What's New") · per-hero skill changes · skill demo video & real voice lines.
+
+## CI/CD
+
+- **PR → `develop`** runs the build/test workflow (`macos-26`, Xcode 26.2).
+- **Merge → `main`** archives and uploads to TestFlight.
 
 ## Credits
 
