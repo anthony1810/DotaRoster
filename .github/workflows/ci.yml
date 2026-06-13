@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: macos-26
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode_26.2.app
+
+      - name: Cache SPM dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: spm-
+
+      - name: Resolve packages
+        run: xcodebuild -resolvePackageDependencies -project DotaRoster.xcodeproj -scheme DotaRoster
+
+      - name: Build
+        run: |
+          xcodebuild build \
+            -project DotaRoster.xcodeproj \
+            -scheme DotaRoster \
+            -destination "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2" \
+            CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES
+
+      # Test execution is enabled once the first tests and a CI test plan land
+      # (Phase 1 adds tests per package; Phase 8 adds DotaRoster-CI.xctestplan):
+      #
+      # - name: Build for Testing
+      #   run: |
+      #     xcodebuild build-for-testing \
+      #       -project DotaRoster.xcodeproj -scheme DotaRoster -testPlan DotaRoster-CI \
+      #       CODE_SIGNING_ALLOWED=NO \
+      #       -destination "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2" ONLY_ACTIVE_ARCH=YES
+      # - name: Run Tests
+      #   run: |
+      #     xcodebuild test-without-building \
+      #       -project DotaRoster.xcodeproj -scheme DotaRoster -testPlan DotaRoster-CI \
+      #       CODE_SIGNING_ALLOWED=NO \
+      #       -destination "platform=iOS Simulator,name=iPhone 17 Pro,OS=26.2"
