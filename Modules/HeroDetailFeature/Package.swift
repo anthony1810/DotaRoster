@@ -1,9 +1,9 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 import PackageDescription
 
 let package = Package(
     name: "HeroDetailFeature",
-    platforms: [.iOS(.v17), .macOS(.v14)],
+    platforms: [.iOS("26.0"), .macOS("26.0")],
     products: [.library(name: "HeroDetailFeature", targets: ["HeroDetailFeature"])],
     dependencies: [
         .package(path: "../DotaFoundation"),
@@ -25,5 +25,6 @@ let package = Package(
             .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
             .product(name: "ConcurrencyExtras", package: "swift-concurrency-extras")
         ])
-    ]
+    ],
+    swiftLanguageModes: [.v6]
 )

@@ -13,7 +13,7 @@ Early WIP. A working single-file SwiftUI proof-of-concept lives in `Sources/`; t
 
 ## Tech stack
 
-- **iOS 17+ / macOS 14+**, SwiftUI, Swift 5.9, Swift Concurrency (actors, async/await), strict-concurrency-friendly.
+- **iOS 26+ / macOS 26+**, SwiftUI, **Swift 6** (full language mode, complete concurrency checking), actors & async/await throughout.
 - **State management:** [ScreenStateKit](https://github.com/anthony1810/ScreenStateKit) — `ScreenState` + `ScreenActionStore` + `ActionLocker`.
 - **DI:** [pointfreeco/swift-dependencies](https://github.com/pointfreeco/swift-dependencies).
 - **Persistence:** SwiftData (offline-first hero cache).
@@ -97,7 +97,7 @@ Voice lines are currently spoken via on-device text-to-speech; the model carries
 
 ## Requirements & running
 
-- Xcode 26+, iOS 17+ simulator or device.
+- Xcode 26+, iOS 26+ simulator or device.
 - Open `DotaRoster.xcodeproj`, select the **DotaRoster** scheme, and run. Swift Package Manager resolves all dependencies automatically.
 
 ## Roadmap

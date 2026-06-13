@@ -1,9 +1,9 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 import PackageDescription
 
 let package = Package(
     name: "DotaFeature",
-    platforms: [.iOS(.v17), .macOS(.v14)],
+    platforms: [.iOS("26.0"), .macOS("26.0")],
     products: [.library(name: "DotaFeature", targets: ["DotaFeature"])],
     dependencies: [
         .package(path: "../DotaFoundation"),
@@ -17,5 +17,6 @@ let package = Package(
             .product(name: "ScreenStateKit", package: "ScreenStateKit")
         ]),
         .testTarget(name: "DotaFeatureTests", dependencies: ["DotaFeature"])
-    ]
+    ],
+    swiftLanguageModes: [.v6]
 )
