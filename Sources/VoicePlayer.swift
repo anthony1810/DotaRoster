@@ -3,16 +3,15 @@ import Foundation
 
 @Observable
 @MainActor
-final class VoicePlayer {
+final class VoicePlayer: NSObject, AVSpeechSynthesizerDelegate {
     private(set) var isSpeaking = false
 
     private let synthesizer = AVSpeechSynthesizer()
     private var player: AVPlayer?
-    private let delegate = SpeechDelegate()
 
-    init() {
-        synthesizer.delegate = delegate
-        delegate.onFinish = { [weak self] in self?.isSpeaking = false }
+    override init() {
+        super.init()
+        synthesizer.delegate = self
     }
 
     func speak(_ line: HeroLine, heroSeed: Int) {
@@ -64,16 +63,12 @@ final class VoicePlayer {
         try? session.setActive(true)
         #endif
     }
-}
 
-private final class SpeechDelegate: NSObject, AVSpeechSynthesizerDelegate {
-    var onFinish: (() -> Void)?
-
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        Task { @MainActor in self.onFinish?() }
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        Task { @MainActor in self.isSpeaking = false }
     }
 
-    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
-        Task { @MainActor in self.onFinish?() }
+    nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+        Task { @MainActor in self.isSpeaking = false }
     }
 }
