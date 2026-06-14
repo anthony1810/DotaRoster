@@ -1,0 +1,51 @@
+name: CI-Modules
+
+on:
+  pull_request:
+    branches: [develop, main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.list.outputs.modules }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: list
+        name: Discover modules with tests
+        run: |
+          modules=$(for d in Modules/*/; do
+            if ls "$d"Tests/*/*.swift >/dev/null 2>&1; then basename "$d"; fi
+          done | jq -R . | jq -cs .)
+          echo "Discovered modules with tests: $modules"
+          echo "modules=$modules" >> "$GITHUB_OUTPUT"
+
+  test-modules:
+    needs: discover
+    if: needs.discover.outputs.modules != '[]'
+    runs-on: macos-26
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJSON(needs.discover.outputs.modules) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode_26.2.app
+
+      - name: Test ${{ matrix.module }}
+        working-directory: Modules/${{ matrix.module }}
+        run: swift test --enable-code-coverage
