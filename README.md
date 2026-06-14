@@ -1,5 +1,9 @@
 # DotaRoster
 
+[![CI](https://github.com/anthony1810/DotaRoster/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/anthony1810/DotaRoster/actions/workflows/ci.yml)
+[![Tests](https://github.com/anthony1810/DotaRoster/actions/workflows/test-modules.yml/badge.svg?branch=develop)](https://github.com/anthony1810/DotaRoster/actions/workflows/test-modules.yml)
+[![TestFlight](https://github.com/anthony1810/DotaRoster/actions/workflows/testflight.yml/badge.svg)](https://github.com/anthony1810/DotaRoster/actions/workflows/testflight.yml)
+
 A Dota 2 hero browser for iOS — browse every hero, see their info, and tap to hear their voice lines. Built as the **reference sample app for [ScreenStateKit](https://github.com/anthony1810/ScreenStateKit)**, demonstrating the *Three Pillars* state pattern inside a modular, protocol-driven clean architecture.
 
 > Supersedes **Definery** as the canonical ScreenStateKit example. It mirrors the **OnDeck** layout: a single `DotaFoundation` core, role-based infrastructure packages, feature-as-package modules, and `pointfreeco/Dependencies` for dependency injection.
