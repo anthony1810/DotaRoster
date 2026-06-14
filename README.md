@@ -16,7 +16,9 @@ A Dota 2 hero browser for iOS — browse every hero, see their info, and tap to 
 
 The app is split into small Swift packages, each with one job.
 
-![Modular package architecture](docs/modular-architecture.png)
+<p align="center"><img src="docs/modular-architecture.png" alt="Modular package architecture" width="600"></p>
+
+> 📖 This applies **Horizontal Modular Slicing within Feature Vertical Slicing** — see the write-up: [iOS Modular Architecture: From Monolith to Hybrid Approaches](https://medium.com/@qquang269/ios-modular-architecture-from-monolith-to-hybrid-approaches-979f827886fb).
 
 **The governing rule: every dependency points inward, to `DotaFoundation`.** Features and infrastructure are *siblings that never import each other* — a feature depends on a **protocol**, and only the app's composition root knows the concrete implementation. That inversion is what makes features testable without a network or database, infrastructure swappable, and packages buildable in isolation.
 
@@ -65,7 +67,7 @@ The app is split into small Swift packages, each with one job.
 
 Every screen is a unidirectional loop built from three pillars.
 
-![ScreenStateKit Three Pillars](docs/ssk-three-pillars.png)
+<p align="center"><img src="docs/ssk-three-pillars.png" alt="ScreenStateKit Three Pillars" width="480"></p>
 
 - **State** — `@Observable @MainActor final class … : ScreenState`. Holds the screen's data plus `infoMessage`; `isLoading` is tracked automatically. Being `@Observable`, mutating it re-renders the View.
 - **Store** — `actor … : ScreenActionStore`. Holds a `weak` reference to the State, defines an `Action` enum, and processes actions in `receive(action:)`.
