@@ -19,7 +19,7 @@ jobs:
     outputs:
       modules: ${{ steps.list.outputs.modules }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: list
         name: Discover modules with tests
         run: |
@@ -39,7 +39,7 @@ jobs:
       matrix:
         module: ${{ fromJSON(needs.discover.outputs.modules) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Select Xcode
         run: sudo xcode-select -switch /Applications/Xcode_26.2.app
