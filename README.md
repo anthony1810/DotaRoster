@@ -16,7 +16,7 @@ A Dota 2 hero browser for iOS — browse every hero, see their info, and tap to 
 
 The app is split into small Swift packages, each with one job.
 
-<p align="center"><img src="docs/modular-architecture.png" alt="Modular package architecture" width="600"></p>
+<p align="center"><img src="docs/modular-architecture-v2.png" alt="Modular package architecture" width="600"></p>
 
 > 📖 This applies **Horizontal Modular Slicing within Feature Vertical Slicing** — see the write-up: [iOS Modular Architecture: From Monolith to Hybrid Approaches](https://medium.com/@qquang269/ios-modular-architecture-from-monolith-to-hybrid-approaches-979f827886fb).
 
@@ -67,7 +67,7 @@ The app is split into small Swift packages, each with one job.
 
 Every screen is a unidirectional loop built from three pillars.
 
-<p align="center"><img src="docs/ssk-three-pillars.png" alt="ScreenStateKit Three Pillars" width="480"></p>
+<p align="center"><img src="docs/ssk-three-pillars-v2.png" alt="ScreenStateKit Three Pillars" width="480"></p>
 
 - **State** — `@Observable @MainActor final class … : ScreenState`. Holds the screen's data plus `infoMessage`; `isLoading` is tracked automatically. Being `@Observable`, mutating it re-renders the View.
 - **Store** — `actor … : ScreenActionStore`. Holds a `weak` reference to the State, defines an `Action` enum, and processes actions in `receive(action:)`.
