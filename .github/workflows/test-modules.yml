@@ -7,8 +7,6 @@ on:
       - '**.md'
       - 'docs/**'
       - '.gitignore'
-  push:
-    branches: [develop]
   workflow_dispatch:
 
 concurrency:
